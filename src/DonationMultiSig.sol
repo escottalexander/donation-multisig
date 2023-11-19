@@ -23,8 +23,8 @@ contract DonationMultiSig {
 		mapping(address => bool) approvals;
 	}
 
-	mapping(address => Proposal) addProposals;
-	mapping(address => Proposal) removeProposals;
+	mapping(address => Proposal) public addProposals;
+	mapping(address => Proposal) public removeProposals;
 
 	mapping(address => bool) public isContributor;
 	address[] public contributors;
@@ -60,6 +60,11 @@ contract DonationMultiSig {
 		address newContributor,
 		uint32 weight
 	) external onlyContributors {
+		// Check if the address is already a contributor
+		if (isContributor[newContributor]) {
+			revert AlreadyContributor();
+		}
+
 		if (weight == 0) {
 			revert NewContributorCannotHaveZeroWeight(newContributor);
 		}
@@ -97,10 +102,6 @@ contract DonationMultiSig {
 			!(addProposals[newContributor].approvalCount >= _approvalMinimum())
 		) {
 			revert NotEnoughApprovals();
-		}
-		// Check if the address is already a contributor
-		if (isContributor[newContributor]) {
-			revert AlreadyContributor();
 		}
 
 		isContributor[newContributor] = true;
